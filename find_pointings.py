@@ -33,7 +33,7 @@ args = parser.parse_args()
 prop_names = ['Path', 'Survey', 'Telescope', 'Frontend', 'Backend', 'MJD',
     'RA J2000', 'Dec J2000', 'Freq', 'Length', 'Sampling time', 'Bandwidth',
     'Freq channels', 'Num_pols', 'Source name', 'Bits', 'Beam', 'f_high', 'f_low',
-    'Pol_type', 'Backend_mode']
+    'Pol_type', 'Backend_mode', 'Size']
 
 print('Reading directory list from {}.'.format(args.i))
 dir_list = [line.strip().split('\t') for line in open(args.i, 'r').readlines()]
@@ -136,7 +136,7 @@ def parse_fits_or_fil(path):
 
         os.remove(temp_filename)
 
-    if 'None' in [props[name] for name in prop_names if name not in ['Path', 'Survey']]:
+    if 'None' in [props[name] for name in prop_names if name not in ['Path', 'Survey', 'Size']]:
         bad_props = []
         for name in prop_names:
             if props[name] == 'None':
@@ -149,14 +149,21 @@ def parse_fits_or_fil(path):
 
     return props
 
-def check_file_size(path):
-    """Takes in a file and checks whether that file has non-zero size"""
+#def check_file_size(path):
+#    """Takes in a file and checks whether that file has non-zero size"""
+#
+#    process = subprocess.Popen('ls -l {}'.format(path), stdout=subprocess.PIPE, shell=True)
+#    output, error = process.communicate()
+#    inf = output.decode('UTF-8')
+#    size = int(inf.split(' ')[4])
+#    return size
 
-    process = subprocess.Popen('ls -l {}'.format(path), stdout=subprocess.PIPE, shell=True)
-    output, error = process.communicate()
-    inf = output.decode('UTF-8')
-    size = int(inf.split(' ')[4])
-    return size
+def get_file_size(path):
+    """Takes in a file and returns its size in Mb"""
+
+    file_stats = os.stat(path)
+    file_size = file_stats.st_size/(1024**2)
+    return file_size
 
 def is_good(path):
     """Checks that a file is not in the list of blacklisted/ignore files"""
@@ -207,11 +214,12 @@ def grab_pointings_from_survey(survey, loc):
                     # cause readfile to crash. If that's the case, the script should
                     # skip over the symlink.
 
-                    if exists == True and check_file_size(path) != 0:
+                    if exists == True and get_file_size(path) != 0:
                         try:
                             props = parse_fits_or_fil(path)
                             props['Path'] = path
                             props['Survey'] = survey
+                            props['Size'] = get_file_size(path)
                             info = [props[name] for name in prop_names]
                             pointings.append(info)
                         except UnicodeDecodeError:
