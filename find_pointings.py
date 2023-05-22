@@ -138,7 +138,7 @@ def parse_fits_or_fil(path):
 
     if 'None' in [props[name] for name in prop_names if name not in ['Path', 'Survey', 'Size']]:
         bad_props = []
-        for name in prop_names:
+        for name in [name for name in prop_names if name not in ['Path', 'Survey', 'Size']]:
             if props[name] == 'None':
                 bad_props.append(name)
         message = 'Warning: {} fields have no values listed:'.format(len(bad_props))
