@@ -219,7 +219,7 @@ def grab_pointings_from_survey(survey, loc):
                             props = parse_fits_or_fil(path)
                             props['Path'] = path
                             props['Survey'] = survey
-                            props['Size'] = get_file_size(path)
+                            props['Size'] = str(get_file_size(path))
                             info = [props[name] for name in prop_names]
                             pointings.append(info)
                         except UnicodeDecodeError:
